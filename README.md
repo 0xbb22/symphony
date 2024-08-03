@@ -16,7 +16,7 @@ Script ini digunakan untuk mengelola transaksi dan staking otomatis di jaringan 
 2. **Menginstall Dependencies**
    - Buka terminal atau command prompt di direktori proyek Anda dan jalankan perintah berikut:
    ```bash
-   npm install @cosmjs/proto-signing @cosmjs/stargate bip39 axios dotenv
+   npm install @cosmjs/proto-signing @cosmjs/stargate bip39 axios dotenv https-proxy-agent
    ```
 
 ## Penggunaan Program
@@ -55,7 +55,8 @@ Script ini digunakan untuk mengelola transaksi dan staking otomatis di jaringan 
    - Anda akan melihat dua pilihan menu:
      1. Mengirim otomatis
      2. Stake otomatis
-   - Masukkan pilihan Anda (1 atau 2) dan ikuti instruksi yang diberikan.
+     3. Klaim faucet
+   - Masukkan pilihan Anda (1, 2, atau 3) dan ikuti instruksi yang diberikan.
 
 6. **Masukkan Jumlah Wallet atau Validator**
    - Jika Anda memilih opsi "Mengirim otomatis", masukkan jumlah wallet yang ingin dibuat dan dihasilkan.

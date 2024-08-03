@@ -4,6 +4,8 @@ const { DirectSecp256k1HdWallet, makeCosmoshubPath } = require('@cosmjs/proto-si
 const { SigningStargateClient, assertIsDeliverTxSuccess } = require('@cosmjs/stargate');
 const bip39 = require('bip39');
 const axios = require('axios');
+const claimFaucet = require('./files/faucet');
+const { claimFaucetWithProxies } = require('./files/faucet');
 require('dotenv').config();
 
 // Konfigurasi
@@ -111,8 +113,9 @@ const menu = async () => {
   console.log(`${color.cyan}Pilih Menu:${color.reset}`);
   console.log(`${color.yellow}1. Mengirim otomatis${color.reset}`);
   console.log(`${color.yellow}2. Stake otomatis${color.reset}`);
-  
-  const choice = await askQuestion('Masukkan pilihan Anda (1 atau 2): ');
+  console.log(`${color.yellow}3. Klaim Faucet${color.reset}`);
+
+  const choice = await askQuestion('Masukkan pilihan Anda (1, 2, atau 3): ');
 
   switch (choice) {
     case '1':
@@ -121,8 +124,11 @@ const menu = async () => {
     case '2':
       await stakeAutomatically();
       break;
+    case '3':
+      await claimFaucetForSenderWithProxies();
+      break;
     default:
-      console.log(`${color.red}Pilihan tidak valid. Silakan pilih 1 atau 2.${color.reset}`);
+      console.log(`${color.red}Pilihan tidak valid. Silakan pilih 1, 2, atau 3.${color.reset}`);
   }
 };
 
@@ -179,18 +185,13 @@ const stakeAutomatically = async () => {
   printColored(`Saldo Pengirim: ${balance} MLD`, color.cyan);
 
   const validators = await getActiveValidators();
-  printColored('\nValidator Aktif:', color.cyan);
+  printColored('\nDaftar Validator Aktif:', color.cyan);
   validators.forEach((validator, index) => {
-    printColored(`Validator ${index + 1}: ${validator.description.moniker} (${validator.operator_address})`, color.yellow);
+    printColored(`${index + 1}. ${validator.description.moniker} (${validator.operator_address})`, color.yellow);
   });
 
-  const numberOfValidators = await askQuestion('Masukkan jumlah validator yang ingin di-stake: ');
-  const selectedValidators = [];
-  for (let i = 0; i < numberOfValidators; i++) {
-    const validatorIndex = await askQuestion(`Masukkan nomor validator ${i + 1}: `);
-    const validator = validators[validatorIndex - 1];
-    selectedValidators.push(validator.operator_address);
-  }
+  const validatorCount = await askQuestion('Masukkan jumlah validator yang akan digunakan untuk staking: ');
+  const selectedValidators = validators.slice(0, validatorCount).map(v => v.operator_address);
 
   const amountToStake = await askQuestion('Masukkan jumlah token yang akan di-stake ke setiap validator (dalam note, misalnya 100000000 untuk 100 MLD): ');
 
@@ -200,6 +201,24 @@ const stakeAutomatically = async () => {
   }
 
   printColored('\nSemua staking selesai dengan sukses.', color.green);
+};
+
+// Fungsi untuk klaim faucet untuk alamat pengirim dengan proxy
+const claimFaucetForSenderWithProxies = async () => {
+  const mnemonicSender = readMnemonicFromEnv();
+  const senderAddress = await generateAddress(mnemonicSender);
+
+  printColored(`\nMengklaim faucet untuk ${senderAddress} dengan proxy...`, color.cyan);
+  await claimFaucetWithProxies(senderAddress);
+};
+
+// Fungsi untuk klaim faucet untuk alamat pengirim
+const claimFaucetForSender = async () => {
+  const mnemonicSender = readMnemonicFromEnv();
+  const senderAddress = await generateAddress(mnemonicSender);
+
+  printColored(`\nMengklaim faucet untuk ${senderAddress}...`, color.cyan);
+  await claimFaucet(senderAddress);
 };
 
 menu();
